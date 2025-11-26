@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    depends_on:
+      - store-service
+      - library-service
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    command: npm run dev
+
+  store-service:
+    build: ./store-service
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGO_URI=mongodb://mongo-db:27017/mist-store
+      - PORT=3001
+    depends_on:
+      - mongo-db
+    volumes:
+      - ./store-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  library-service:
+    build: ./library-service
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+    volumes:
+      - ./library-service:/app
+      - /app/node_modules
+    command: npm run dev
+
+  front-app:
+    build: ./front-app
+    ports:
+      - "8080:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    volumes:
+      - ./front-app:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+
+  mongo-db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
