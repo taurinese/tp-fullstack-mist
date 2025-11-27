@@ -60,18 +60,26 @@ export type User = {
 };
 
 export type AuthResponse = {
-  token: string;
+  // token: string; // Token is now in cookie
   user: User;
 };
 
-export const fetcher = (url: string) => fetch(url).then(res => res.json());
+// Helper for credentials: 'include'
+const fetchWithCreds = (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    credentials: 'include', // Send cookies
+  });
+};
+
+export const fetcher = (url: string) => fetchWithCreds(url).then(res => res.json());
 
 const GATEWAY_URL = "http://localhost:3000/api";
 
 // --- AUTH ---
 
 export const registerUser = async (username: string, email: string, password: string): Promise<User> => {
-  const res = await fetch(`${GATEWAY_URL}/user/register`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/user/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, email, password }),
@@ -85,7 +93,7 @@ export const registerUser = async (username: string, email: string, password: st
 };
 
 export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
-  const res = await fetch(`${GATEWAY_URL}/user/login`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/user/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -98,12 +106,16 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
   return res.json();
 };
 
-export const getCurrentUser = async (token: string): Promise<User> => {
-  const res = await fetch(`${GATEWAY_URL}/user/me`, {
+export const logoutUser = async (): Promise<void> => {
+  await fetchWithCreds(`${GATEWAY_URL}/user/logout`, {
+    method: "POST"
+  });
+};
+
+export const getCurrentUser = async (/* token param removed */): Promise<User> => {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/user/me`, {
     method: "GET",
-    headers: { 
-      "Authorization": `Bearer ${token}` 
-    },
+    // No Authorization header needed, cookie handles it
   });
 
   if (!res.ok) {
@@ -115,13 +127,13 @@ export const getCurrentUser = async (token: string): Promise<User> => {
 // --- STORE & LIBRARY ---
 
 export const getGames = async (): Promise<Game[]> => {
-  const res = await fetch(`${GATEWAY_URL}/store`);
+  const res = await fetchWithCreds(`${GATEWAY_URL}/store`);
   if (!res.ok) throw new Error("Failed to fetch games");
   return res.json();
 }
 
 export const refreshGamePrices = async (gameId: number): Promise<Game> => {
-  const res = await fetch(`${GATEWAY_URL}/store/${gameId}/refresh-prices`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/store/${gameId}/refresh-prices`, {
     method: "PUT"
   });
   if (!res.ok) throw new Error("Failed to refresh prices");
@@ -129,13 +141,13 @@ export const refreshGamePrices = async (gameId: number): Promise<Game> => {
 }
 
 export const getUserLibrary = async (userId: number): Promise<Purchase[]> => {
-  const res = await fetch(`${GATEWAY_URL}/library/user/${userId}`);
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/user/${userId}`);
   if (!res.ok) throw new Error("Failed to fetch library");
   return res.json();
 }
 
 export const buyGame = async (userId: number, gameId: number): Promise<Purchase> => {
-  const res = await fetch(`${GATEWAY_URL}/library/buy`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/buy`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -148,7 +160,7 @@ export const buyGame = async (userId: number, gameId: number): Promise<Purchase>
 }
 
 export const updateGameStatus = async (purchaseId: number, status: Purchase['status']): Promise<Purchase> => {
-  const res = await fetch(`${GATEWAY_URL}/library/purchase/${purchaseId}/status`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/purchase/${purchaseId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -161,7 +173,7 @@ export const updateGameStatus = async (purchaseId: number, status: Purchase['sta
 }
 
 export const updateGameRating = async (purchaseId: number, rating: number): Promise<Purchase> => {
-  const res = await fetch(`${GATEWAY_URL}/library/purchase/${purchaseId}/rating`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/purchase/${purchaseId}/rating`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -174,7 +186,7 @@ export const updateGameRating = async (purchaseId: number, rating: number): Prom
 }
 
 export const toggleFavorite = async (purchaseId: number): Promise<Purchase> => {
-  const res = await fetch(`${GATEWAY_URL}/library/purchase/${purchaseId}/favorite`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/purchase/${purchaseId}/favorite`, {
     method: "PATCH",
   });
 
@@ -183,7 +195,7 @@ export const toggleFavorite = async (purchaseId: number): Promise<Purchase> => {
 }
 
 export const updateGameNotes = async (purchaseId: number, notes: string): Promise<Purchase> => {
-  const res = await fetch(`${GATEWAY_URL}/library/purchase/${purchaseId}/notes`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/purchase/${purchaseId}/notes`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -203,7 +215,7 @@ export const addManualGame = async (userId: number, data: {
   status?: Purchase['status'];
   notes?: string;
 }): Promise<Purchase> => {
-  const res = await fetch(`${GATEWAY_URL}/library/add-manual`, {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/add-manual`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -216,7 +228,7 @@ export const addManualGame = async (userId: number, data: {
 }
 
 export const getLibraryByStatus = async (userId: number, status: Purchase['status']): Promise<Purchase[]> => {
-  const res = await fetch(`${GATEWAY_URL}/library/user/${userId}/status/${status}`);
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/user/${userId}/status/${status}`);
   if (!res.ok) throw new Error("Failed to fetch library by status");
   return res.json();
 }
