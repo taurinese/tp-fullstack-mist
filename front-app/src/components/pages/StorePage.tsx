@@ -3,9 +3,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useSWR from "swr";
-import { fetcher, type Game, buyGame } from "@/lib/api";
+import { fetcher, type Game, buyGame, refreshGamePrices } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ExternalLink, Info } from "lucide-react";
 
 export function StorePage() {
   const [search, setSearch] = useState("");
@@ -46,7 +48,7 @@ export function StorePage() {
     return `http://localhost:3000/api/store${queryString ? `?${queryString}` : ""}`;
   };
 
-  const { data: games, error, isLoading } = useSWR<Game[]>(buildUrl(), fetcher, {
+  const { data: games, error, isLoading, mutate } = useSWR<Game[]>(buildUrl(), fetcher, {
     keepPreviousData: true, // Garde les données précédentes pendant le chargement
     revalidateOnFocus: false // Évite de recharger au focus
   });
@@ -85,8 +87,29 @@ export function StorePage() {
     setSortBy("title");
   };
 
+  const handleMouseEnter = async (game: Game) => {
+    // Avoid spamming refresh if recently updated (simple client-side check)
+    if (game.lastPriceUpdate) {
+       const lastUpdate = new Date(game.lastPriceUpdate).getTime();
+       const now = new Date().getTime();
+       if (now - lastUpdate < 3600000) return; // < 1 hour
+    }
 
-  const handleBuy = async (game: Game) => {
+    try {
+       // Optimistic UI update not needed here as we want real data, 
+       // but we update local cache once data arrives
+       const updatedGame = await refreshGamePrices(game.id);
+       
+       mutate(currentGames => {
+          if (!currentGames) return [];
+          return currentGames.map(g => g.id === game.id ? updatedGame : g);
+       }, false); 
+    } catch (e) {
+       console.error("Price refresh failed", e);
+    }
+  };
+
+  const handleAddToLibrary = async (game: Game) => {
     if (!user) {
       setLoginOpen(true);
       return;
@@ -94,11 +117,12 @@ export function StorePage() {
 
     try {
       setProcessingId(game.id);
-      await buyGame(user.id, game.id);
-      alert(`Successfully purchased ${game.title}!`);
+      // Ici, on ne "buy" plus au sens transactionnel, on l'ajoute à la bibliothèque personnelle
+      await buyGame(user.id, game.id); // buyGame est un peu mal nommé maintenant, c'est add to library
+      alert(`Successfully added ${game.title} to your library!`);
       // Optional: Trigger a re-fetch of the library if we had a swr hook for it here
     } catch (err) {
-      alert("Failed to purchase game. It might already be in your library.");
+      alert("Failed to add game to library. It might already be there.");
       console.error(err);
     } finally {
       setProcessingId(null);
@@ -131,42 +155,7 @@ export function StorePage() {
         {/* Sidebar avec filtres dynamiques */}
         <aside className="w-64 border-r border-border p-6 hidden md:block overflow-y-auto">
           <div className="space-y-6">
-            {/* Prix */}
-            <div>
-              <h3 className="font-bold mb-3 text-sm uppercase tracking-wider text-muted-foreground">Prix</h3>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  placeholder="Min"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                  className="w-full rounded-none border-muted text-sm"
-                />
-                <Input
-                  type="number"
-                  placeholder="Max"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                  className="w-full rounded-none border-muted text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Promotions uniquement */}
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={onlyDiscount}
-                  onChange={(e) => setOnlyDiscount(e.target.checked)}
-                  className="cursor-pointer"
-                />
-                <span className="text-sm font-medium group-hover:text-foreground transition-colors">
-                  Promotions uniquement
-                </span>
-              </label>
-            </div>
-
+            
             {/* Genres dynamiques */}
             {availableGenres && availableGenres.length > 0 && (
               <div>
@@ -253,7 +242,11 @@ export function StorePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {games.map((game) => (
-              <Card key={game.id} className="group flex flex-col rounded-none border border-border hover:border-foreground transition-all duration-300 bg-card overflow-hidden p-0">
+              <Card 
+                key={game.id} 
+                onMouseEnter={() => handleMouseEnter(game)}
+                className="group flex flex-col rounded-none border border-border hover:border-foreground transition-all duration-300 bg-card overflow-hidden p-0"
+              >
                 <CardHeader className="p-0">
                    <div className="h-48 w-full relative overflow-hidden bg-muted">
                      <img 
@@ -261,9 +254,9 @@ export function StorePage() {
                        alt={game.title} 
                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 grayscale group-hover:grayscale-0"
                      />
-                     {game.discount > 0 && (
+                     {game.bestDeal && game.bestDeal.savings && game.bestDeal.savings > 0 && (
                        <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 text-xs font-bold">
-                         -{game.discount}%
+                         -{Math.round(game.bestDeal.savings)}%
                        </div>
                      )}
                    </div>
@@ -291,27 +284,66 @@ export function StorePage() {
                 </CardContent>
                 <CardFooter className="p-4 pt-0 flex justify-between items-center">
                   <div className="flex flex-col">
-                    {game.discount > 0 ? (
+                    {game.bestDeal ? (
                       <>
-                        <span className="text-xs text-muted-foreground line-through">${game.price.toFixed(2)}</span>
-                        <span className="font-mono font-bold text-green-600">
-                          ${(game.price * (1 - game.discount / 100)).toFixed(2)}
+                        {game.bestDeal.retailPrice > game.bestDeal.price && (
+                          <span className="text-xs text-muted-foreground line-through">
+                            ${game.bestDeal.retailPrice.toFixed(2)}
+                          </span>
+                        )}
+                        <span className="font-mono font-bold text-lg text-green-600">
+                          ${game.bestDeal.price.toFixed(2)}
                         </span>
                       </>
                     ) : (
-                      <span className="font-mono font-bold">
-                        {game.price === 0 ? "Gratuit" : `$${game.price.toFixed(2)}`}
+                      <span className="font-mono font-bold text-sm text-muted-foreground">
+                        Prix indisponible
                       </span>
                     )}
                   </div>
-                  <Button
-                    size="sm" 
-                    onClick={() => handleBuy(game)}
-                    disabled={processingId === game.id}
-                    className="rounded-none bg-foreground text-background hover:bg-muted hover:text-foreground border border-foreground"
-                  >
-                    {processingId === game.id ? "Achat..." : "Acheter"}
-                  </Button>
+                  
+                  <div className="flex items-center gap-2">
+                    {game.allDeals && game.allDeals.length > 0 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
+                            <Info className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-60 p-2">
+                          <p className="text-sm font-semibold mb-2">Autres offres:</p>
+                          {game.allDeals.map((deal, index) => (
+                            <div key={index} className="flex justify-between items-center text-xs py-1">
+                              <span className="font-medium">{deal.store}</span>
+                              <div className="flex items-center gap-1">
+                                {deal.retailPrice > deal.price && (
+                                   <span className="line-through text-muted-foreground">${deal.retailPrice.toFixed(2)}</span>
+                                )}
+                                <span className="font-bold">${deal.price.toFixed(2)}</span>
+                                <a 
+                                  href={deal.dealLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="text-primary hover:underline ml-1"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </div>
+                            </div>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+                    )}
+
+                    <Button
+                      size="sm" 
+                      onClick={() => game.bestDeal && game.bestDeal.dealLink ? window.open(game.bestDeal.dealLink, '_blank') : handleAddToLibrary(game)}
+                      disabled={processingId === game.id}
+                      className="rounded-none bg-foreground text-background hover:bg-muted hover:text-foreground border border-foreground"
+                    >
+                      {processingId === game.id ? "..." : (game.bestDeal && game.bestDeal.dealLink ? "Voir l'offre" : "Ajouter à la bibliothèque")}
+                    </Button>
+                  </div>
                 </CardFooter>
               </Card>
             ))}

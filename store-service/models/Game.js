@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const GameSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },
     title: { type: String, required: true },
-    price: { type: Number, required: true },
     description: String,
     image: String,
     genre: [String],
@@ -14,10 +13,24 @@ const GameSchema = new mongoose.Schema({
     tags: [String], // Pour filtrage avancé (Singleplayer, Multiplayer, Co-op, etc.)
     features: [String], // Steam Cloud, Controller Support, Achievements, etc.
     languages: [String], // Langues supportées
-    discount: { type: Number, default: 0 }, // Pourcentage de réduction
     reviewsCount: { type: Number, default: 0 }, // Nombre d'avis
     platform: [String], // Windows, Mac, Linux, Steam Deck
-    isEarlyAccess: { type: Boolean, default: false }
+    isEarlyAccess: { type: Boolean, default: false },
+    lastPriceUpdate: { type: Date }, // Date de la dernière mise à jour des prix
+    bestDeal: { // Le meilleur deal trouvé
+        store: String,
+        price: Number,
+        retailPrice: Number,
+        savings: Number,
+        dealLink: String
+    },
+    allDeals: [{ // Tous les deals trouvés
+        store: String,
+        price: Number,
+        retailPrice: Number,
+        savings: Number,
+        dealLink: String
+    }]
 });
 
 // Index pour la recherche full-text

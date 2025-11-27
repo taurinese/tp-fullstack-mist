@@ -6,12 +6,16 @@ const router = express.Router();
 // CheapShark utilise des IDs, on les traduit en noms lisibles pour ton Front
 const STORE_MAPPING = {
     "1": "Steam",
+    "2": "GamersGate",
+    "3": "GreenManGaming",
     "7": "GOG",
-    "25": "Epic Games",
+    "8": "Origin",
     "11": "Humble Store",
     "13": "Uplay (Ubisoft)",
-    "2": "GamersGate"
-    // Microsoft Store n'est pas toujours fiable sur CheapShark, on se concentre sur les PC majeurs
+    "15": "Fanatical",
+    "25": "Epic Games",
+    "27": "Gamesplanet",
+    "29": "Microsoft Store"
 };
 
 // Route A : Les "Hot Deals" (Pour ta page d'accueil)
@@ -80,6 +84,9 @@ router.get('/search', async (req, res) => {
         });
 
         // Réponse finale formatée
+        if (comparison.length === 0) {
+            console.log(`[Comparateur] Aucun deal trouvé pour ${gameName} (après filtrage des stores).`);
+        }
         res.json({
             title: gameName,
             image: gameThumb,

@@ -1,7 +1,15 @@
+export type Deal = {
+  store: string;
+  price: number;
+  retailPrice: number;
+  savings: number;
+  dealLink: string;
+};
+
 export type Game = {
   id: number;
   title: string;
-  price: number;
+  price: number; // This will now be the base price from the game data, not necessarily the deal price
   description?: string;
   image?: string;
   genre?: string[];
@@ -12,10 +20,15 @@ export type Game = {
   tags?: string[];
   features?: string[];
   languages?: string[];
-  discount?: number;
+  discount?: number; // This might become less relevant if we use external deals
   reviewsCount?: number;
   platform?: string[];
   isEarlyAccess?: boolean;
+  
+  // New price caching fields
+  lastPriceUpdate?: Date;
+  bestDeal?: Deal;
+  allDeals?: Deal[];
 };
 
 export type Purchase = {
@@ -104,6 +117,14 @@ export const getCurrentUser = async (token: string): Promise<User> => {
 export const getGames = async (): Promise<Game[]> => {
   const res = await fetch(`${GATEWAY_URL}/store`);
   if (!res.ok) throw new Error("Failed to fetch games");
+  return res.json();
+}
+
+export const refreshGamePrices = async (gameId: number): Promise<Game> => {
+  const res = await fetch(`${GATEWAY_URL}/store/${gameId}/refresh-prices`, {
+    method: "PUT"
+  });
+  if (!res.ok) throw new Error("Failed to refresh prices");
   return res.json();
 }
 
