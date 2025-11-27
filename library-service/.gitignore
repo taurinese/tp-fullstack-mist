@@ -1,1 +1,17 @@
-library.sqlite
+# Dependencies
+node_modules/
+
+# Database
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
