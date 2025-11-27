@@ -1,14 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-export type User = {
-  id: number;
-  name: string;
-  email: string;
-};
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import {type User, loginUser, registerUser, getCurrentUser } from './api';
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -20,39 +16,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check localStorage on mount
-    const storedUser = localStorage.getItem('mist_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error("Failed to parse stored user", e);
-        localStorage.removeItem('mist_user');
+    const initAuth = async () => {
+      const token = localStorage.getItem('mist_token');
+      if (token) {
+        try {
+          const user = await getCurrentUser(token);
+          setUser(user);
+        } catch (e) {
+          console.error("Session expired or invalid", e);
+          localStorage.removeItem('mist_token');
+        }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+    initAuth();
   }, []);
 
-  const login = (username: string) => {
-    // Fake login logic
-    // Always returns user ID 1 to match backend seed data
-    const fakeUser: User = {
-      id: 1,
-      name: username,
-      email: `${username.toLowerCase().replace(/\s/g, '')}@example.com`
-    };
-    
-    setUser(fakeUser);
-    localStorage.setItem('mist_user', JSON.stringify(fakeUser));
+  const login = async (email: string, password: string) => {
+    try {
+      const data = await loginUser(email, password);
+      localStorage.setItem('mist_token', data.token);
+      setUser(data.user);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const register = async (username: string, email: string, password: string) => {
+    try {
+      await registerUser(username, email, password);
+      // Auto login after register
+      await login(email, password);
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('mist_user');
+    localStorage.removeItem('mist_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

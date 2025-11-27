@@ -15,6 +15,17 @@ services:
       - /app/node_modules
     command: npm run dev
 
+  import-service:
+    build: ./import-service
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+    volumes:
+      - ./import-service:/app
+      - /app/node_modules
+    command: npm run dev
+
   store-service:
     build: ./store-service
     ports:
@@ -37,9 +48,9 @@ services:
       - PORT=3002
       - POSTGRES_HOST=postgres-db
       - POSTGRES_PORT=5432
-      - POSTGRES_DB=mist_library
+      - POSTGRES_DB=mist
       - POSTGRES_USER=mist
-      - POSTGRES_PASSWORD=mist_password
+      - POSTGRES_PASSWORD=mist
     depends_on:
       - postgres-db
     volumes:
@@ -70,11 +81,30 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=mist_library
+      - POSTGRES_DB=mist
       - POSTGRES_USER=mist
-      - POSTGRES_PASSWORD=mist_password
+      - POSTGRES_PASSWORD=mist
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - POSTGRES_HOST=postgres-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=mist
+      - POSTGRES_USER=mist
+      - POSTGRES_PASSWORD=mist
+      - JWT_SECRET=your_super_secret_jwt_key
+    depends_on:
+      - postgres-db
+    volumes:
+      - ./user-service:/app
+      - /app/node_modules
+    command: npm run dev
 
 volumes:
   mongo-data:

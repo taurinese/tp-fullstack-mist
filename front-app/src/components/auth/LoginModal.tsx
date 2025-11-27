@@ -17,31 +17,65 @@ interface LoginModalProps {
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  defaultMode?: 'login' | 'signup';
 }
 
-export function LoginModal({ trigger, open, onOpenChange }: LoginModalProps) {
-  const [isSignUp, setIsSignUp] = useState(false);
+export function LoginModal({ trigger, open, onOpenChange, defaultMode = 'login' }: LoginModalProps) {
+  const [isSignUp, setIsSignUp] = useState(defaultMode === 'signup');
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { login, register } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   // Handle controlled vs uncontrolled state
   const show = open !== undefined ? open : isOpen;
-  const setShow = onOpenChange || setIsOpen;
+  const setShow = (open: boolean) => {
+     if (onOpenChange) onOpenChange(open);
+     else setIsOpen(open);
+     
+     // Reset to default mode when closing or opening
+     if (!open) {
+        setTimeout(() => setIsSignUp(defaultMode === 'signup'), 200); // Delay reset for animation
+     } else {
+        setIsSignUp(defaultMode === 'signup');
+     }
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username) return;
-    
-    login(username);
-    setShow(false);
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      if (isSignUp) {
+        if (!username || !email || !password) {
+          throw new Error("All fields are required");
+        }
+        await register(username, email, password);
+      } else {
+        if (!email || !password) {
+          throw new Error("All fields are required");
+        }
+        await login(email, password);
+      }
+      setShow(false);
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setUsername("");
+    setEmail("");
     setPassword("");
+    setError(null);
   };
 
   return (
@@ -57,19 +91,38 @@ export function LoginModal({ trigger, open, onOpenChange }: LoginModalProps) {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+          
+          {isSignUp && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="username" className="text-right">
+                Username
+              </Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="col-span-3"
+                placeholder="Your username"
+                autoFocus
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="username" className="text-right">
-              Username
+            <Label htmlFor="email" className="text-right">
+              Email
             </Label>
             <Input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="col-span-3"
-              placeholder="Any name"
-              autoFocus
+              placeholder="name@example.com"
+              autoFocus={!isSignUp}
             />
           </div>
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="password" className="text-right">
               Password
@@ -80,11 +133,18 @@ export function LoginModal({ trigger, open, onOpenChange }: LoginModalProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="col-span-3"
-              placeholder="Any password"
+              placeholder="••••••••"
             />
           </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
+
           <DialogFooter className="flex-col sm:flex-col gap-2">
-             <Button type="submit">{isSignUp ? "Sign Up" : "Login"}</Button>
+             <Button type="submit" disabled={isLoading}>
+               {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Login")}
+             </Button>
              <div className="text-center text-sm text-muted-foreground mt-2">
                 {isSignUp ? "Already have an account? " : "Don't have an account? "}
                 <button 

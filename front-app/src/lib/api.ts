@@ -39,9 +39,67 @@ export type Purchase = {
   updatedAt: string;
 };
 
+export type User = {
+  id: number;
+  username: string;
+  email: string;
+  role?: 'user' | 'admin';
+};
+
+export type AuthResponse = {
+  token: string;
+  user: User;
+};
+
 export const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const GATEWAY_URL = "http://localhost:3000/api";
+
+// --- AUTH ---
+
+export const registerUser = async (username: string, email: string, password: string): Promise<User> => {
+  const res = await fetch(`${GATEWAY_URL}/user/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, email, password }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Registration failed");
+  }
+  return res.json();
+};
+
+export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
+  const res = await fetch(`${GATEWAY_URL}/user/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Login failed");
+  }
+  return res.json();
+};
+
+export const getCurrentUser = async (token: string): Promise<User> => {
+  const res = await fetch(`${GATEWAY_URL}/user/me`, {
+    method: "GET",
+    headers: { 
+      "Authorization": `Bearer ${token}` 
+    },
+  });
+
+  if (!res.ok) {
+     throw new Error("Failed to fetch user");
+  }
+  return res.json();
+};
+
+// --- STORE & LIBRARY ---
 
 export const getGames = async (): Promise<Game[]> => {
   const res = await fetch(`${GATEWAY_URL}/store`);

@@ -50,7 +50,7 @@ export function Header() {
           {user ? (
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground hidden md:inline-block">
-                Welcome, {user.name}
+                Welcome, {user.username}
               </span>
               <Button 
                 variant="ghost" 
@@ -78,6 +78,7 @@ export function Header() {
                     Sign up
                   </Button>
                 }
+                defaultMode="signup"
               />
             </div>
           )}

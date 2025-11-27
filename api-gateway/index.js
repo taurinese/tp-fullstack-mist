@@ -18,6 +18,16 @@ app.use('/api/library', createProxyMiddleware({
     changeOrigin: true
 }))
 
+app.use('/api/import', createProxyMiddleware({
+    target: 'http://import-service:3003',
+    changeOrigin: true
+}))
+
+app.use('/api/user', createProxyMiddleware({
+    target: 'http://user-service:3004',
+    changeOrigin: true
+}))
+
 app.listen(3000, () => {
     console.log('Gateway running on port 3000');
 })
