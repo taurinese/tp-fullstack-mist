@@ -8,7 +8,15 @@ const games = [
         genre: ["FPS", "Action", "Sci-Fi"],
         releaseDate: new Date("2026-03-03"),
         rating: 5.0,
-        publisher: "Valve"
+        publisher: "Valve",
+        developer: "Valve",
+        tags: ["Singleplayer", "Story Rich", "First-Person", "Atmospheric", "Sci-fi"],
+        features: ["Steam Achievements", "Steam Cloud", "Controller Support", "Steam Trading Cards"],
+        languages: ["English", "French", "Spanish", "German", "Japanese"],
+        discount: 0,
+        reviewsCount: 0,
+        platform: ["Windows", "Mac", "Linux", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 102,
@@ -19,7 +27,15 @@ const games = [
         genre: ["RPG", "Cyberpunk", "Open World"],
         releaseDate: new Date("2077-12-10"),
         rating: 4.5,
-        publisher: "CD Projekt Red"
+        publisher: "CD Projekt Red",
+        developer: "CD Projekt Red",
+        tags: ["Open World", "RPG", "Cyberpunk", "Choices Matter", "Mature"],
+        features: ["Steam Achievements", "Full Controller Support", "Steam Cloud", "Ray Tracing"],
+        languages: ["English", "French", "Polish", "German", "Spanish", "Japanese", "Korean"],
+        discount: 15,
+        reviewsCount: 125890,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 103,
@@ -30,7 +46,15 @@ const games = [
         genre: ["Sandbox", "Survival", "Adventure"],
         releaseDate: new Date("2024-05-17"),
         rating: 4.8,
-        publisher: "Mojang Studios"
+        publisher: "Mojang Studios",
+        developer: "Mojang Studios",
+        tags: ["Sandbox", "Survival", "Multiplayer", "Building", "Creative", "Family Friendly"],
+        features: ["Steam Achievements", "Multiplayer", "Cross-Platform Multiplayer", "Steam Workshop"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "Japanese", "Chinese"],
+        discount: 0,
+        reviewsCount: 2456780,
+        platform: ["Windows", "Mac", "Linux", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 104,
@@ -41,7 +65,15 @@ const games = [
         genre: ["Puzzle", "Platformer", "Sci-Fi"],
         releaseDate: new Date("2025-10-10"),
         rating: 4.9,
-        publisher: "Valve"
+        publisher: "Valve",
+        developer: "Valve",
+        tags: ["Puzzle", "First-Person", "Singleplayer", "Sci-fi", "Comedy"],
+        features: ["Steam Achievements", "Steam Cloud", "Controller Support", "Steam Workshop"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Russian"],
+        discount: 0,
+        reviewsCount: 0,
+        platform: ["Windows", "Mac", "Linux", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 105,
@@ -52,7 +84,15 @@ const games = [
         genre: ["Action", "Open World", "Crime"],
         releaseDate: new Date("2025-04-01"),
         rating: 4.7,
-        publisher: "Rockstar Games"
+        publisher: "Rockstar Games",
+        developer: "Rockstar North",
+        tags: ["Open World", "Action", "Crime", "Mature", "Multiplayer", "Story Rich"],
+        features: ["Online Co-Op", "Steam Achievements", "Full Controller Support", "In-Game Purchases"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Japanese", "Korean", "Portuguese"],
+        discount: 0,
+        reviewsCount: 0,
+        platform: ["Windows"],
+        isEarlyAccess: false
     },
     {
         id: 106,
@@ -63,7 +103,15 @@ const games = [
         genre: ["RPG", "Fantasy", "Open World"],
         releaseDate: new Date("2026-11-11"),
         rating: 4.6,
-        publisher: "Bethesda Softworks"
+        publisher: "Bethesda Softworks",
+        developer: "Bethesda Game Studios",
+        tags: ["Open World", "RPG", "Fantasy", "Singleplayer", "Moddable", "Dragons"],
+        features: ["Steam Achievements", "Steam Cloud", "Full Controller Support", "Steam Workshop"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Polish", "Russian", "Japanese"],
+        discount: 0,
+        reviewsCount: 0,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 107,
@@ -74,7 +122,15 @@ const games = [
         genre: ["Metroidvania", "Action", "Indie"],
         releaseDate: new Date("2024-02-24"),
         rating: 4.9,
-        publisher: "Team Cherry"
+        publisher: "Team Cherry",
+        developer: "Team Cherry",
+        tags: ["Metroidvania", "Indie", "2D", "Difficult", "Atmospheric", "Hand-drawn"],
+        features: ["Steam Achievements", "Full Controller Support", "Steam Cloud"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "Japanese", "Chinese", "Korean"],
+        discount: 10,
+        reviewsCount: 89450,
+        platform: ["Windows", "Mac", "Linux", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 108,
@@ -85,7 +141,15 @@ const games = [
         genre: ["Action", "RPG", "Horror"],
         releaseDate: new Date("2025-01-01"),
         rating: 4.8,
-        publisher: "FromSoftware"
+        publisher: "FromSoftware",
+        developer: "FromSoftware",
+        tags: ["Souls-like", "Dark Fantasy", "Difficult", "Action RPG", "Horror", "Gothic"],
+        features: ["Steam Achievements", "Full Controller Support", "Steam Cloud"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Japanese", "Korean"],
+        discount: 20,
+        reviewsCount: 156780,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 109,
@@ -96,7 +160,15 @@ const games = [
         genre: ["Simulation", "Life", "Strategy"],
         releaseDate: new Date("2025-06-01"),
         rating: 4.2,
-        publisher: "Electronic Arts"
+        publisher: "Electronic Arts",
+        developer: "Maxis",
+        tags: ["Life Sim", "Simulation", "Building", "Family Friendly", "Casual", "Moddable"],
+        features: ["In-Game Purchases", "Steam Workshop", "Steam Cloud"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Polish", "Russian", "Japanese", "Korean", "Chinese"],
+        discount: 0,
+        reviewsCount: 234567,
+        platform: ["Windows", "Mac"],
+        isEarlyAccess: false
     },
     {
         id: 110,
@@ -107,7 +179,15 @@ const games = [
         genre: ["Adventure", "Action", "Fantasy"],
         releaseDate: new Date("2023-05-12"),
         rating: 5.0,
-        publisher: "Nintendo"
+        publisher: "Nintendo",
+        developer: "Nintendo EPD",
+        tags: ["Open World", "Adventure", "Fantasy", "Exploration", "Puzzle", "Action"],
+        features: ["Controller Required", "Steam Deck Verified"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Japanese"],
+        discount: 0,
+        reviewsCount: 345678,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 111,
@@ -118,7 +198,15 @@ const games = [
         genre: ["Sports", "Simulation", "Multiplayer"],
         releaseDate: new Date("2049-09-29"),
         rating: 3.5,
-        publisher: "EA Sports"
+        publisher: "EA Sports",
+        developer: "EA Canada",
+        tags: ["Sports", "Soccer", "Multiplayer", "Online Co-Op", "Competitive", "Realistic"],
+        features: ["Online PvP", "Cross-Platform Multiplayer", "In-Game Purchases", "Full Controller Support"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "Arabic", "Japanese"],
+        discount: 50,
+        reviewsCount: 67890,
+        platform: ["Windows"],
+        isEarlyAccess: false
     },
     {
         id: 112,
@@ -129,7 +217,15 @@ const games = [
         genre: ["Space Sim", "MMO", "Sci-Fi"],
         releaseDate: new Date("2030-01-01"),
         rating: 3.0,
-        publisher: "Cloud Imperium Games"
+        publisher: "Cloud Imperium Games",
+        developer: "Cloud Imperium Games",
+        tags: ["Space", "Simulation", "MMO", "Sci-fi", "Multiplayer", "Flight"],
+        features: ["MMO", "Online Co-Op", "In-Game Purchases"],
+        languages: ["English", "German", "French", "Spanish"],
+        discount: 0,
+        reviewsCount: 12345,
+        platform: ["Windows"],
+        isEarlyAccess: false
     },
     {
         id: 113,
@@ -140,7 +236,15 @@ const games = [
         genre: ["FPS", "Action", "Multiplayer"],
         releaseDate: new Date("2024-10-10"),
         rating: 4.8,
-        publisher: "Valve"
+        publisher: "Valve",
+        developer: "Valve",
+        tags: ["FPS", "Multiplayer", "Team-Based", "Comedy", "Class-Based", "Free to Play"],
+        features: ["Online PvP", "Steam Trading Cards", "Steam Workshop", "In-Game Purchases"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "Japanese", "Korean", "Chinese"],
+        discount: 0,
+        reviewsCount: 987654,
+        platform: ["Windows", "Mac", "Linux", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 114,
@@ -151,7 +255,15 @@ const games = [
         genre: ["RPG", "Fantasy", "Open World"],
         releaseDate: new Date("2026-05-19"),
         rating: 4.9,
-        publisher: "CD Projekt Red"
+        publisher: "CD Projekt Red",
+        developer: "CD Projekt Red",
+        tags: ["Open World", "RPG", "Story Rich", "Choices Matter", "Fantasy", "Female Protagonist"],
+        features: ["Steam Achievements", "Full Controller Support", "Steam Cloud", "Ray Tracing"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Polish", "Russian", "Japanese", "Korean", "Chinese"],
+        discount: 0,
+        reviewsCount: 0,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 115,
@@ -162,7 +274,15 @@ const games = [
         genre: ["FPS", "Family", "Action"],
         releaseDate: new Date("2024-02-14"),
         rating: 4.7,
-        publisher: "Bethesda Softworks"
+        publisher: "Bethesda Softworks",
+        developer: "id Software",
+        tags: ["FPS", "Action", "Comedy", "Family Friendly", "Singleplayer", "Fast-Paced"],
+        features: ["Steam Achievements", "Full Controller Support", "Steam Cloud"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Russian", "Japanese"],
+        discount: 33,
+        reviewsCount: 45678,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 116,
@@ -173,7 +293,15 @@ const games = [
         genre: ["Racing", "Multiplayer", "Family"],
         releaseDate: new Date("2025-04-28"),
         rating: 4.8,
-        publisher: "Nintendo"
+        publisher: "Nintendo",
+        developer: "Nintendo EAD",
+        tags: ["Racing", "Multiplayer", "Family Friendly", "Local Co-Op", "Party Game", "Arcade"],
+        features: ["Online PvP", "Local Co-Op", "Cross-Platform Multiplayer", "Full Controller Support"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Japanese", "Korean"],
+        discount: 0,
+        reviewsCount: 234890,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 117,
@@ -184,7 +312,15 @@ const games = [
         genre: ["RPG", "Action", "Souls-like"],
         releaseDate: new Date("2025-03-24"),
         rating: 4.9,
-        publisher: "FromSoftware"
+        publisher: "FromSoftware",
+        developer: "FromSoftware",
+        tags: ["Souls-like", "Dark Fantasy", "Difficult", "Action RPG", "Third Person", "Medieval"],
+        features: ["Steam Achievements", "Full Controller Support", "Steam Cloud", "Online Co-Op"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Japanese", "Korean", "Chinese"],
+        discount: 0,
+        reviewsCount: 0,
+        platform: ["Windows", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 118,
@@ -195,7 +331,15 @@ const games = [
         genre: ["Simulation", "Farming", "Indie"],
         releaseDate: new Date("2024-02-26"),
         rating: 4.9,
-        publisher: "ConcernedApe"
+        publisher: "ConcernedApe",
+        developer: "ConcernedApe",
+        tags: ["Farming Sim", "Indie", "Relaxing", "Singleplayer", "Romance", "Pixel Graphics"],
+        features: ["Steam Achievements", "Steam Cloud", "Controller Support", "Steam Workshop"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "Japanese", "Korean", "Chinese"],
+        discount: 25,
+        reviewsCount: 567890,
+        platform: ["Windows", "Mac", "Linux", "Steam Deck"],
+        isEarlyAccess: false
     },
     {
         id: 119,
@@ -206,7 +350,15 @@ const games = [
         genre: ["Social Deduction", "Multiplayer", "VR"],
         releaseDate: new Date("2024-11-15"),
         rating: 4.5,
-        publisher: "Innersloth"
+        publisher: "Innersloth",
+        developer: "Innersloth",
+        tags: ["Social Deduction", "Multiplayer", "VR", "Party Game", "Online Co-Op", "Casual"],
+        features: ["Online PvP", "VR Support", "Cross-Platform Multiplayer", "Voice Chat"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "Japanese", "Korean"],
+        discount: 0,
+        reviewsCount: 123456,
+        platform: ["Windows"],
+        isEarlyAccess: false
     },
     {
         id: 120,
@@ -217,7 +369,15 @@ const games = [
         genre: ["MOBA", "Strategy", "Multiplayer"],
         releaseDate: new Date("2025-01-01"),
         rating: 4.6,
-        publisher: "Riot Games"
+        publisher: "Riot Games",
+        developer: "Riot Games",
+        tags: ["MOBA", "Multiplayer", "Strategy", "Competitive", "Team-Based", "Free to Play"],
+        features: ["Online PvP", "In-Game Purchases", "Competitive Matchmaking", "Spectator Mode"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "Japanese", "Korean", "Chinese", "Turkish"],
+        discount: 0,
+        reviewsCount: 3456789,
+        platform: ["Windows", "Mac"],
+        isEarlyAccess: false
     }
 ];
 

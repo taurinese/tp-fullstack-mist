@@ -8,6 +8,14 @@ export type Game = {
   releaseDate?: string;
   rating?: number;
   publisher?: string;
+  developer?: string;
+  tags?: string[];
+  features?: string[];
+  languages?: string[];
+  discount?: number;
+  reviewsCount?: number;
+  platform?: string[];
+  isEarlyAccess?: boolean;
 };
 
 export type Purchase = {
