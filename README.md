@@ -45,6 +45,24 @@ Cette plateforme permet actuellement aux utilisateurs de :
 
 ## Schéma d'architecture détaillé
 
+![Schéma d'Architecture de Mist](./docs/mist-architecture-schema.png)
+
+1. __Zone publique__: 
+* Browser: pour que l'utilisateur accède à l'application web
+* Frontend: Conteneur Docker avec Vite + React + TypeScript 
+* API Gateway : Conteneur Docker avec NodeJS + Express + http-proxy-middleware. Gère le routage et redirige les requêtes vers le bon microservice
+2. __Zone Services__:
+* Import Service (port 3003): Gère la communication avec les API externes (CheapShark, Steam...) pour importer les données de jeux et prix
+* Store Service (port 3001): Gère le catalogue public de jeux-vidéo, contient un cache interne des prix
+* Library Service (port 3002): Gère la collection personnelle de jeux-vidéo (achetés/possédés)
+* User Service (port 3004): Gère l'authentification et les comptes utilisateurs
+3. __Zone Bases de données__:
+* MongoDB (port 27017): Utilisé par le Store Service, choisi pour la flexibilité des fiches de jeux-vidéo
+* PostgreSQL (port 5432): Héberge deux bases logiques distinctes (mist_user & mist_library), choisi pour garantir l'intégrité des données relationnelles (utilisateurs, bibliothèques)
+4. __Flux spécifiques__:
+* StoreService -> ImportService: Le StoreService interroge l'ImportService pour actualiser les prix des jeux
+* ImportService -> API externe (CheapShark): permet de récupérer les données de jeux et les différents prix
+
 ---
 
 ## Explications des choix techniques
@@ -84,27 +102,27 @@ L'architecture de Mist a été pensée pour être modulaire, scalable et mainten
 
 ## 🚀 Installation et Démarrage
 
-Le projet est entièrement conteneurisé avec Docker. Aucune installation locale de Node.js ou de base de données n'est requise.
+Le projet est entièrement conteneurisé avec Docker.
 
 ### Prérequis
-- **Docker** et **Docker Compose** installés sur votre machine.
+- **Docker** et **Docker Compose** installés.
 
-### Lancer le projet
+### Lancement rapide
 
-1. **Cloner le dépôt** (si ce n'est pas déjà fait)
+1. **Configurer l'environnement**
+   Copiez le fichier d'exemple pour créer votre configuration locale :
    ```bash
-   git clone <votre-repo-url>
-   cd tp-fullstack-mist
+   cp .env.example .env
    ```
 
-2. **Démarrer la stack**
+2. **Démarrer la stack** <br>
+   Compilez et lancez les conteneurs en arrière-plan :
    ```bash
-   docker-compose up --build
+   docker-compose up -d --build
    ```
-   *L'option `--build` assure que les images sont construites avec les dernières modifications.*
 
-3. **Accéder à l'application**
-    - **Frontend** : [http://localhost:8080](http://localhost:8080) (ou le port indiqué dans votre console)
+3. **Accéder à l'application** <br>
+    - **Frontend** : [http://localhost:8080](http://localhost:8080)
     - **API Gateway** : [http://localhost:3000](http://localhost:3000)
 
 ---
