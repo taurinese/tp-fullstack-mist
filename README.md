@@ -115,14 +115,30 @@ Le projet est entièrement conteneurisé avec Docker.
    cp .env.example .env
    ```
 
-2. **Démarrer la stack** <br>
+2. **Démarrer la stack**
    Compilez et lancez les conteneurs en arrière-plan :
    ```bash
    docker-compose up -d --build
    ```
 
-3. **Accéder à l'application** <br>
+3. **Accéder à l'application**
     - **Frontend** : [http://localhost:8080](http://localhost:8080)
     - **API Gateway** : [http://localhost:3000](http://localhost:3000)
+
+### ⚡️ Tester l'API rapidement
+
+Une fois la stack lancée, vous pouvez tester les routes principales directement depuis votre navigateur ou via `curl` :
+
+*   **Documentation Swagger (Tous les services)** :
+    [http://localhost:3000/docs](http://localhost:3000/docs) (Le moyen le plus simple pour explorer)
+
+*   **Store Service (Catalogue)** :
+    [http://localhost:3000/api/store](http://localhost:3000/api/store)
+
+*   **User Service (Test Auth)** :
+    `POST http://localhost:3000/api/user/register` (Voir Swagger pour le payload)
+
+*   **Frontend (Interface complète)** :
+    [http://localhost:8080](http://localhost:8080)
 
 ---
