@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
+import { toast } from "sonner"; // Import toast
 
 const STATUS_LABELS = {
   wishlist: "Wishlist",
@@ -158,9 +159,10 @@ export function LibraryPage() {
       // Revalider les données
       mutate(`library-user-${user.id}`);
       handleCloseEdit();
+      toast.success('Changes saved successfully');
     } catch (error) {
       console.error('Failed to save changes:', error);
-      alert('Failed to save changes');
+      toast.error('Failed to save changes');
     }
   };
 
@@ -173,7 +175,7 @@ export function LibraryPage() {
       setImportedGames(data.games);
     } catch (error) {
       console.error("Import failed", error);
-      alert("Failed to fetch Steam library. Is the ID correct?");
+      toast.error("Failed to fetch Steam library. Is the ID correct?");
     } finally {
       setIsImporting(false);
     }
@@ -184,7 +186,7 @@ export function LibraryPage() {
 
       try {
           const result = await importSteamGames(user.id, importedGames);
-          alert(`Success! ${result.count} games imported to your library.`);
+          toast.success(`Success! ${result.count} games imported to your library.`);
           
           // Refresh library
           mutate(`library-user-${user.id}`);
@@ -194,7 +196,7 @@ export function LibraryPage() {
           setSteamId("");
       } catch (error) {
           console.error("Failed to save imported games", error);
-          alert("Failed to import games into library.");
+          toast.error("Failed to import games into library.");
       }
   };
 

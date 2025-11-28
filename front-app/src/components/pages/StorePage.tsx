@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ExternalLink, Info } from "lucide-react";
+import { toast } from "sonner"; // Import toast
 
 export function StorePage() {
   const [search, setSearch] = useState("");
@@ -119,10 +120,10 @@ export function StorePage() {
       setProcessingId(game.id);
       // Ici, on ne "buy" plus au sens transactionnel, on l'ajoute à la bibliothèque personnelle
       await buyGame(user.id, game.id); // buyGame est un peu mal nommé maintenant, c'est add to library
-      alert(`Successfully added ${game.title} to your library!`);
+      toast.success(`Successfully added ${game.title} to your library!`);
       // Optional: Trigger a re-fetch of the library if we had a swr hook for it here
     } catch (err) {
-      alert("Failed to add game to library. It might already be there.");
+      toast.error("Failed to add game to library. It might already be there.");
       console.error(err);
     } finally {
       setProcessingId(null);
