@@ -293,6 +293,73 @@ app.post('/add-manual', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /import:
+ *   post:
+ *     summary: Import games from external source (e.g. Steam)
+ *     tags: [Library]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - games
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               games:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     title:
+ *                       type: string
+ *                     image:
+ *                       type: string
+ *                     playtime:
+ *                       type: integer
+ *     responses:
+ *       200:
+ *         description: Games imported successfully
+ */
+app.post('/import', async (req, res) => {
+    try {
+        const { userId, games } = req.body;
+        let importedCount = 0;
+
+        for (const game of games) {
+            // Vérifier si le jeu existe déjà (par titre custom ou gameId si on pouvait mapper)
+            // Ici on simplifie : unicité par titre pour cet user
+            const exists = await Purchase.findOne({
+                where: {
+                    userId,
+                    customTitle: game.title
+                }
+            });
+
+            if (!exists) {
+                await Purchase.create({
+                    userId,
+                    source: 'steam_import',
+                    customTitle: game.title,
+                    customImage: game.image,
+                    playTime: game.playtime,
+                    status: 'to_play'
+                });
+                importedCount++;
+            }
+        }
+
+        res.json({ message: `${importedCount} games imported`, count: importedCount });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(3002, () => {
     console.log('Library service running on port 3001');
 })

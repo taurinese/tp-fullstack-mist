@@ -7,8 +7,11 @@ import {
   updateGameRating,
   updateGameNotes,
   toggleFavorite,
+  fetchSteamLibrary, // New import
+  importSteamGames, // New import
   type Game,
-  type Purchase
+  type Purchase,
+  type SteamGame // New import
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +49,13 @@ export function LibraryPage() {
   const { user } = useAuth();
   const [selectedStatus, setSelectedStatus] = useState<Purchase['status'] | 'all'>('all');
   const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
+  
+  // --- STEAM IMPORT STATE ---
+  const [showSteamImport, setShowSteamImport] = useState(false);
+  const [steamId, setSteamId] = useState("");
+  const [importedGames, setImportedGames] = useState<SteamGame[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
+
   const [editForm, setEditForm] = useState({
     status: '' as Purchase['status'],
     rating: 0,
@@ -154,6 +164,40 @@ export function LibraryPage() {
     }
   };
 
+  // --- STEAM IMPORT HANDLER ---
+  const handleImportSteam = async () => {
+    if (!steamId) return;
+    setIsImporting(true);
+    try {
+      const data = await fetchSteamLibrary(steamId);
+      setImportedGames(data.games);
+    } catch (error) {
+      console.error("Import failed", error);
+      alert("Failed to fetch Steam library. Is the ID correct?");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleAddImportedGames = async () => {
+      if (!user || importedGames.length === 0) return;
+
+      try {
+          const result = await importSteamGames(user.id, importedGames);
+          alert(`Success! ${result.count} games imported to your library.`);
+          
+          // Refresh library
+          mutate(`library-user-${user.id}`);
+          
+          setShowSteamImport(false);
+          setImportedGames([]);
+          setSteamId("");
+      } catch (error) {
+          console.error("Failed to save imported games", error);
+          alert("Failed to import games into library.");
+      }
+  };
+
   // Combiner purchases avec game details
   const enrichedPurchases = filteredPurchases.map(purchase => {
     const game = purchase.gameId ? allGames.find(g => g.id === purchase.gameId) : null;
@@ -168,11 +212,16 @@ export function LibraryPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Header */}
-      <div className="px-8 py-12 border-b border-border">
-        <h1 className="text-5xl font-bold tracking-tighter mb-4">My Library</h1>
-        <p className="text-muted-foreground text-lg">
-          {purchases.length} game{purchases.length !== 1 ? "s" : ""} in your collection
-        </p>
+      <div className="px-8 py-12 border-b border-border flex justify-between items-center">
+        <div>
+            <h1 className="text-5xl font-bold tracking-tighter mb-4">My Library</h1>
+            <p className="text-muted-foreground text-lg">
+            {purchases.length} game{purchases.length !== 1 ? "s" : ""} in your collection
+            </p>
+        </div>
+        <Button onClick={() => setShowSteamImport(true)} variant="outline" className="rounded-none border-2">
+            Import from Steam
+        </Button>
       </div>
 
       {/* Status Tabs */}
@@ -336,9 +385,52 @@ export function LibraryPage() {
         )}
       </main>
 
+      {/* Modal Steam Import */}
+      <Dialog open={showSteamImport} onOpenChange={setShowSteamImport}>
+        <DialogContent className="sm:max-w-[600px] rounded-none">
+          <DialogHeader>
+            <DialogTitle>Import from Steam</DialogTitle>
+            <DialogDescription>
+              Enter your Steam ID (64-bit) to import your public game library.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex gap-2 my-4">
+            <Input 
+                placeholder="Enter Steam ID (e.g. 76561198000000000)" 
+                value={steamId}
+                onChange={(e) => setSteamId(e.target.value)}
+                className="rounded-none"
+            />
+            <Button onClick={handleImportSteam} disabled={isImporting} className="rounded-none">
+                {isImporting ? "Scanning..." : "Scan"}
+            </Button>
+          </div>
+
+          {importedGames.length > 0 && (
+              <div className="mt-4 border rounded p-4 max-h-[300px] overflow-y-auto bg-muted/10">
+                  <h3 className="font-bold mb-2">{importedGames.length} Games Found:</h3>
+                  <ul className="space-y-2">
+                      {importedGames.map(game => (
+                          <li key={game.id} className="flex items-center gap-2 text-sm">
+                              <img src={game.image} className="w-8 h-8 object-cover" />
+                              <span className="flex-1 truncate">{game.title}</span>
+                              <span className="text-muted-foreground text-xs">{Math.round(game.playtime / 60)}h played</span>
+                          </li>
+                      ))}
+                  </ul>
+                  <Button onClick={handleAddImportedGames} className="w-full mt-4 rounded-none">
+                      Import {importedGames.length} Games
+                  </Button>
+              </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Modal d'édition */}
       <Dialog open={!!editingPurchase} onOpenChange={(open) => !open && handleCloseEdit()}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-none">
+
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">Edit Game Details</DialogTitle>
             <DialogDescription>

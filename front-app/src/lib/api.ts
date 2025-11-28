@@ -227,6 +227,32 @@ export const addManualGame = async (userId: number, data: {
   return res.json();
 }
 
+// --- IMPORT ---
+
+export type SteamGame = {
+  id: number;
+  title: string;
+  playtime: number;
+  image: string;
+};
+
+export const fetchSteamLibrary = async (steamId: string): Promise<{ platform: string, user: string, games: SteamGame[] }> => {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/import/steam/${steamId}`);
+  if (!res.ok) throw new Error("Failed to fetch Steam library");
+  return res.json();
+};
+
+export const importSteamGames = async (userId: number, games: SteamGame[]): Promise<{ message: string, count: number }> => {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/import`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, games }),
+  });
+  
+  if (!res.ok) throw new Error("Failed to import games");
+  return res.json();
+}
+
 export const getLibraryByStatus = async (userId: number, status: Purchase['status']): Promise<Purchase[]> => {
   const res = await fetchWithCreds(`${GATEWAY_URL}/library/user/${userId}/status/${status}`);
   if (!res.ok) throw new Error("Failed to fetch library by status");
