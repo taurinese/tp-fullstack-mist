@@ -4,6 +4,8 @@ const connectDB = require('./database');
 const Game = require('./models/Game');
 const gamesData = require("./data/games");
 const axios = require('axios'); // Import axios
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 const IMPORT_SERVICE_URL = "http://import-service:3003/deals/search"; // Internal Docker URL
@@ -12,6 +14,39 @@ const app = express();
 
 app.use(morgan('dev'));
 app.use(express.json());
+
+// --- SWAGGER CONFIGURATION ---
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Store Service API',
+            version: '1.0.0',
+            description: 'API for browsing games catalogue',
+        },
+        servers: [
+            {
+                url: 'http://localhost:3001',
+                description: 'Store Service (Direct)',
+            },
+            {
+                url: 'http://localhost:3000/api/store',
+                description: 'Store Service (via Gateway)',
+            },
+        ],
+    },
+    apis: ['./index.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // Fonction pour récupérer et mettre en cache les prix
 async function fetchAndCachePrices(game) {
@@ -84,7 +119,22 @@ initApp();
 
 // IMPORTANT : Les routes spécifiques doivent être AVANT la route /:id
 
-// Endpoint pour obtenir tous les genres disponibles
+/**
+ * @swagger
+ * /filters/genres:
+ *   get:
+ *     summary: Get all available game genres
+ *     tags: [Filters]
+ *     responses:
+ *       200:
+ *         description: List of genres
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ */
 app.get('/filters/genres', async (req, res) => {
     try {
         const genres = await Game.distinct('genre');
@@ -94,7 +144,22 @@ app.get('/filters/genres', async (req, res) => {
     }
 });
 
-// Endpoint pour obtenir tous les tags disponibles
+/**
+ * @swagger
+ * /filters/tags:
+ *   get:
+ *     summary: Get all available game tags
+ *     tags: [Filters]
+ *     responses:
+ *       200:
+ *         description: List of tags
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ */
 app.get('/filters/tags', async (req, res) => {
     try {
         const tags = await Game.distinct('tags');
@@ -116,7 +181,16 @@ app.get('/specials/discounts', async (req, res) => {
     }
 });
 
-// Endpoint pour les jeux populaires
+/**
+ * @swagger
+ * /specials/popular:
+ *   get:
+ *     summary: Get popular games
+ *     tags: [Specials]
+ *     responses:
+ *       200:
+ *         description: List of popular games
+ */
 app.get('/specials/popular', async (req, res) => {
     try {
         const games = await Game.find().sort({ reviewsCount: -1 }).limit(10);
@@ -126,7 +200,16 @@ app.get('/specials/popular', async (req, res) => {
     }
 });
 
-// Endpoint pour les nouvelles sorties
+/**
+ * @swagger
+ * /specials/new-releases:
+ *   get:
+ *     summary: Get new game releases
+ *     tags: [Specials]
+ *     responses:
+ *       200:
+ *         description: List of new games
+ */
 app.get('/specials/new-releases', async (req, res) => {
     try {
         const games = await Game.find().sort({ releaseDate: -1 }).limit(10);
@@ -136,6 +219,33 @@ app.get('/specials/new-releases', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Get all games with filtering and sorting
+ *     tags: [Games]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term for title, description, or tags
+ *       - in: query
+ *         name: genre
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of genres
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [rating, releaseDate, popular, title]
+ *         description: Sort criteria
+ *     responses:
+ *       200:
+ *         description: List of games matching criteria
+ */
 app.get('/', async (req, res) => {
     try {
         const { search, genre, tag, minPrice, maxPrice, platform, sortBy, onlyDiscount } = req.query;
@@ -230,6 +340,25 @@ app.put('/:id/refresh-prices', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /{id}:
+ *   get:
+ *     summary: Get a game by ID
+ *     tags: [Games]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Game ID
+ *     responses:
+ *       200:
+ *         description: Game details
+ *       404:
+ *         description: Game not found
+ */
 app.get('/:id', async (req, res) => {
     try {
         let game = await Game.findOne({ id: req.params.id });

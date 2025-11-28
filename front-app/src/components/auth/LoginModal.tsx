@@ -63,7 +63,7 @@ export function LoginModal({ trigger, open, onOpenChange, defaultMode = 'login' 
         await login(email, password);
       }
       setShow(false);
-    } catch (err: any) {
+    } catch (err: Error) {
       setError(err.message || "An error occurred");
     } finally {
       setIsLoading(false);

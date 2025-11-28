@@ -1,0 +1,11 @@
+{
+  "name": "tp-fullstack-mist-root",
+  "version": "1.0.0",
+  "description": "Root package.json for managing dev tools like Husky",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.0.11"
+  }
+}

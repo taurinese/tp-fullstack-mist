@@ -18,8 +18,16 @@ const STORE_MAPPING = {
     "29": "Microsoft Store"
 };
 
-// Route A : Les "Hot Deals" (Pour ta page d'accueil)
-// Celle-ci reste utile pour montrer des jeux au hasard
+/**
+ * @swagger
+ * /deals:
+ *   get:
+ *     summary: Get global hot deals
+ *     tags: [Deals]
+ *     responses:
+ *       200:
+ *         description: List of trending deals
+ */
 router.get('/', async (req, res) => {
     try {
         console.log("🔥 [Deals] Récupération des promos globales...");
@@ -39,8 +47,25 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Route B : LE COMPARATEUR (Recherche précise)
-// Appel : GET /api/import/deals/search?title=cyberpunk
+/**
+ * @swagger
+ * /deals/search:
+ *   get:
+ *     summary: Search for deals by game title
+ *     tags: [Deals]
+ *     parameters:
+ *       - in: query
+ *         name: title
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Game title to search for
+ *     responses:
+ *       200:
+ *         description: List of deals for the game
+ *       404:
+ *         description: Game not found
+ */
 router.get('/search', async (req, res) => {
     const title = req.query.title;
 

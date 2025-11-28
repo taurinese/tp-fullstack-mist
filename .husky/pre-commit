@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running pre-commit hook..."
+
+echo "🔍 Linting front-app..."
+(cd front-app && npm run lint)
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint errors in front-app. Commit aborted."
+  exit 1
+fi
+
+echo "🧪 Testing user-service..."
+(cd user-service && npx jest) # <--- Changement ici !
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed in user-service. Commit aborted."
+  exit 1
+fi
+
+echo "✅ All checks passed."

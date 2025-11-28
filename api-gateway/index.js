@@ -2,6 +2,7 @@ const express = require ('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const morgan = require('morgan');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 
@@ -10,6 +11,23 @@ app.use(cors({
     credentials: true
 }));
 app.use(morgan('dev'));
+
+// --- SWAGGER AGGREGATION ---
+const swaggerOptions = {
+    explorer: true,
+    swaggerOptions: {
+        urls: [
+            { url: 'http://localhost:3000/api/user/api-docs.json', name: 'User Service' },
+            // Ajoutez ici les autres services quand ils auront leur doc Swagger
+            { url: 'http://localhost:3000/api/store/api-docs.json', name: 'Store Service' },
+            { url: 'http://localhost:3000/api/library/api-docs.json', name: 'Library Service' },
+            { url: 'http://localhost:3000/api/import/api-docs.json', name: 'Import Service' },
+        ]
+    }
+};
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, swaggerOptions));
+
 
 app.use('/api/store', createProxyMiddleware({
     target: 'http://store-service:3001',

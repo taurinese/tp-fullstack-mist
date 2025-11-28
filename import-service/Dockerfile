@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 3000
 
 # La commande de démarrage
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]

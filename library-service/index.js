@@ -2,10 +2,45 @@ const express = require('express');
 const morgan = require('morgan');
 const sequelize = require('./database');
 const Purchase = require('./models/Purchase');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 app.use(morgan('dev'));
 app.use(express.json());
+
+// --- SWAGGER CONFIGURATION ---
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Library Service API',
+            version: '1.0.0',
+            description: 'API for managing user game libraries',
+        },
+        servers: [
+            {
+                url: 'http://localhost:3002',
+                description: 'Library Service (Direct)',
+            },
+            {
+                url: 'http://localhost:3000/api/library',
+                description: 'Library Service (via Gateway)',
+            },
+        ],
+    },
+    apis: ['./index.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 async function initDB(){
     try {
@@ -36,6 +71,23 @@ async function initDB(){
 }
 initDB();
 
+/**
+ * @swagger
+ * /user/{id}:
+ *   get:
+ *     summary: Get library for a user
+ *     tags: [Library]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User's game library
+ */
 app.get('/user/:id', async (req, res) => {
     try {
         const library = await Purchase.findAll({
@@ -52,6 +104,30 @@ app.get('/user/:id', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /buy:
+ *   post:
+ *     summary: Add a game to library (Buy)
+ *     tags: [Library]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - gameId
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               gameId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Game added to library
+ */
 app.post('/buy', async (req, res) => {
     try {
         const { userId, gameId } = req.body;
@@ -169,7 +245,32 @@ app.get('/user/:id/status/:status', async (req, res) => {
     }
 });
 
-// Ajout manuel d'un jeu
+/**
+ * @swagger
+ * /add-manual:
+ *   post:
+ *     summary: Add a manual game entry
+ *     tags: [Library]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - title
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               title:
+ *                 type: string
+ *               platform:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Manual game added
+ */
 app.post('/add-manual', async (req, res) => {
     try {
         const { userId, title, platform, launchPath, customImage, status, notes } = req.body;

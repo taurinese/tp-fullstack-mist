@@ -5,6 +5,9 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const sequelize = require('./database');
 const User = require('./models/User');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+const { validateAuthData } = require('./utils/validation');
 
 const app = express();
 const PORT = process.env.PORT || 3004;
@@ -21,26 +24,6 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
 
-// Fonction de validation simple
-function validateAuthData(username, email, password, isRegistering = false) {
-    const errors = [];
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex basique
-
-    if (isRegistering && (!username || username.length < 3)) {
-        errors.push("Username must be at least 3 characters long.");
-    }
-
-    if (!email || !emailRegex.test(email)) {
-        errors.push("Invalid email format.");
-    }
-
-    if (!password || password.length < 6) {
-        errors.push("Password must be at least 6 characters long.");
-    }
-
-    return errors;
-}
-
 // Middleware pour vérifier le token JWT depuis le cookie
 const authenticateToken = (req, res, next) => {
     const token = req.cookies.token; // Lecture depuis le cookie
@@ -54,9 +37,115 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// --- SWAGGER CONFIGURATION ---
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'User Service API',
+            version: '1.0.0',
+            description: 'API for user authentication and management',
+        },
+        servers: [
+            {
+                url: `http://localhost:${PORT}`, // URL du service user
+                description: 'User Service (Direct)',
+            },
+            {
+                url: `http://localhost:3000/api/user`, // URL via API Gateway
+                description: 'User Service (via Gateway)',
+            },
+        ],
+        components: {
+            securitySchemes: {
+                cookieAuth: {
+                    type: 'apiKey',
+                    in: 'cookie',
+                    name: 'token'
+                }
+            }
+        },
+        security: [{
+            cookieAuth: []
+        }]
+    },
+    apis: ['./index.js'], // Fichier où les commentaires Swagger sont définis
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// Route pour la spécification OpenAPI (JSON)
+app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
+
+// Route pour l'interface utilisateur Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // --- ROUTES ---
 
-// Inscription
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: testuser
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: test@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: password123
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: token=eyJhb...; Path=/; HttpOnly; SameSite=Lax
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 username:
+ *                   type: string
+ *                   example: testuser
+ *                 email:
+ *                   type: string
+ *                   example: test@example.com
+ *       400:
+ *         description: Invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Username must be at least 3 characters long.
+ */
 app.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -93,7 +182,76 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Connexion
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Log in a user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: test@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: User logged in successfully
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: token=eyJhb...; Path=/; HttpOnly; SameSite=Lax
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     username:
+ *                       type: string
+ *                       example: testuser
+ *                     email:
+ *                       type: string
+ *                       example: test@example.com
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Email ou mot de passe incorrect
+ *       400:
+ *         description: Invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid email format.
+ */
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -130,13 +288,61 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Déconnexion
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *     summary: Log out a user
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User logged out successfully
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT
+ */
 app.post('/logout', (req, res) => {
     res.clearCookie('token');
     res.json({ message: "Déconnecté" });
 });
 
-// Vérification du token (Exemple de route protégée)
+/**
+ * @swagger
+ * /me:
+ *   get:
+ *     summary: Get current user information
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 username:
+ *                   type: string
+ *                   example: testuser
+ *                 email:
+ *                   type: string
+ *                   example: test@example.com
+ *                 role:
+ *                   type: string
+ *                   example: user
+ *       401:
+ *         description: Unauthorized (No token or invalid token)
+ *       404:
+ *         description: User not found
+ */
 app.get('/me', authenticateToken, async (req, res) => {
     const user = await User.findByPk(req.user.id, { attributes: { exclude: ['password'] } });
     if (!user) return res.sendStatus(404);
