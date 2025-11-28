@@ -4,9 +4,9 @@ services:
   gateway:
     build: ./api-gateway
     ports:
-      - "3000:3000"
+      - "${GATEWAY_PORT}:3000"
     environment:
-      - PORT=3000
+      - PORT=${GATEWAY_PORT}
     depends_on:
       - store-service
       - library-service
@@ -18,9 +18,9 @@ services:
   import-service:
     build: ./import-service
     ports:
-      - "3003:3003"
+      - "${IMPORT_PORT}:3003"
     environment:
-      - PORT=3003
+      - PORT=${IMPORT_PORT}
     volumes:
       - ./import-service:/app
       - /app/node_modules
@@ -29,10 +29,10 @@ services:
   store-service:
     build: ./store-service
     ports:
-      - "3001:3001"
+      - "${STORE_PORT}:3001"
     environment:
-      - MONGO_URI=mongodb://mongo-db:27017/mist-store
-      - PORT=3001
+      - MONGO_URI=${MONGO_DB_URI}
+      - PORT=${STORE_PORT}
     depends_on:
       - mongo-db
     volumes:
@@ -43,14 +43,14 @@ services:
   library-service:
     build: ./library-service
     ports:
-      - "3002:3002"
+      - "${LIBRARY_PORT}:3002"
     environment:
-      - PORT=3002
-      - POSTGRES_HOST=postgres-db
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=mist
-      - POSTGRES_USER=mist
-      - POSTGRES_PASSWORD=mist
+      - PORT=${LIBRARY_PORT}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - postgres-db
     volumes:
@@ -61,9 +61,9 @@ services:
   front-app:
     build: ./front-app
     ports:
-      - "8080:5173"
+      - "${FRONT_PORT}:5173"
     environment:
-      - VITE_API_URL=http://localhost:3000
+      - VITE_API_URL=${VITE_API_URL}
     volumes:
       - ./front-app:/app
       - /app/node_modules
@@ -79,26 +79,26 @@ services:
   postgres-db:
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     environment:
-      - POSTGRES_DB=mist
-      - POSTGRES_USER=mist
-      - POSTGRES_PASSWORD=mist
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
   user-service:
     build: ./user-service
     ports:
-      - "3004:3004"
+      - "${USER_PORT}:3004"
     environment:
-      - PORT=3004
-      - POSTGRES_HOST=postgres-db
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=mist
-      - POSTGRES_USER=mist
-      - POSTGRES_PASSWORD=mist
-      - JWT_SECRET=your_super_secret_jwt_key
+      - PORT=${USER_PORT}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - postgres-db
     volumes:
