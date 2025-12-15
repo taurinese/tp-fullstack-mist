@@ -35,5 +35,14 @@ const GameSchema = new mongoose.Schema({
 
 // Index pour la recherche full-text
 GameSchema.index({ title: 'text', description: 'text', tags: 'text' });
+GameSchema.index({ genre: 1 });
+GameSchema.index({ tags: 1 });
+GameSchema.index({ platform: 1 });
+GameSchema.index({ reviewsCount: -1 });
+GameSchema.index({ releaseDate: -1 });
+GameSchema.index(
+    { "bestDeal.savings": -1 },
+    { partialFilterExpression: { "bestDeal.savings": { $gt: 0 } } }
+);
 
 module.exports = mongoose.model('Game', GameSchema);

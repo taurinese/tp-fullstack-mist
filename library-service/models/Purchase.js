@@ -100,6 +100,7 @@ const Purchase = sequelize.define('Purchase', {
             unique: true,
             where: { gameId: { [Op.ne]: null } }
         },
+        { fields: ['userId', 'status', 'isFavorite', 'createdAt'] },
         { fields: ['status'] }, // Index pour filtrer par statut
         { fields: ['isFavorite'] },
         { fields: ['source'] }
