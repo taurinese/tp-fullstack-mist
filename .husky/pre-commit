@@ -11,9 +11,16 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "🧪 Testing user-service..."
-(cd user-service && npx jest) # <--- Changement ici !
+(cd user-service && npx jest)
 if [ $? -ne 0 ]; then
   echo "❌ Tests failed in user-service. Commit aborted."
+  exit 1
+fi
+
+echo "🧪 Testing library-service..."
+(cd library-service && npx jest)
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed in library-service. Commit aborted."
   exit 1
 fi
 

@@ -1,17 +1,12 @@
-const express = require('express');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
 const sequelize = require('./database');
 const Purchase = require('./models/Purchase');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
-const libraryRoutes = require('./routes/library');
+const app = require('./app');
 
-const app = express();
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(cookieParser());
 
 // --- SWAGGER CONFIGURATION ---
 const swaggerOptions = {
@@ -44,9 +39,6 @@ app.get('/api-docs.json', (req, res) => {
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// --- ROUTES ---
-app.use('/', libraryRoutes);
 
 // --- INIT ---
 async function initDB() {
