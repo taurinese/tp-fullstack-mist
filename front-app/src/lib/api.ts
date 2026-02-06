@@ -74,7 +74,7 @@ const fetchWithCreds = (url: string, options: RequestInit = {}) => {
 
 export const fetcher = (url: string) => fetchWithCreds(url).then(res => res.json());
 
-const GATEWAY_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000") + "/api";
+export const GATEWAY_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000") + "/api";
 
 // --- AUTH ---
 
@@ -224,6 +224,31 @@ export const addManualGame = async (userId: number, data: {
   });
 
   if (!res.ok) throw new Error("Failed to add manual game");
+  return res.json();
+}
+
+export const updatePurchaseDetails = async (purchaseId: number, data: {
+  launchPath?: string;
+  platform?: string;
+}): Promise<Purchase> => {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/purchase/${purchaseId}/details`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) throw new Error("Failed to update details");
+  return res.json();
+}
+
+export const launchGame = async (purchaseId: number): Promise<{ launchUrl: string; title: string; platform?: string }> => {
+  const res = await fetchWithCreds(`${GATEWAY_URL}/library/purchase/${purchaseId}/launch`);
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to launch game");
+  }
   return res.json();
 }
 

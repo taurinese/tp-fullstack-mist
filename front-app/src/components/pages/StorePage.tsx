@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useSWR from "swr";
-import { fetcher, type Game, buyGame, refreshGamePrices } from "@/lib/api";
+import { fetcher, GATEWAY_URL, type Game, buyGame, refreshGamePrices } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -46,7 +46,7 @@ export function StorePage() {
     if (sortBy !== "title") params.append("sortBy", sortBy);
 
     const queryString = params.toString();
-    return `http://localhost:3000/api/store${queryString ? `?${queryString}` : ""}`;
+    return `${GATEWAY_URL}/store${queryString ? `?${queryString}` : ""}`;
   };
 
   const { data: games, error, isLoading, mutate } = useSWR<Game[]>(buildUrl(), fetcher, {
@@ -56,11 +56,11 @@ export function StorePage() {
 
   // Récupération des filtres disponibles
   const { data: availableGenres } = useSWR<string[]>(
-    "http://localhost:3000/api/store/filters/genres",
+    `${GATEWAY_URL}/store/filters/genres`,
     fetcher
   );
   const { data: availableTags } = useSWR<string[]>(
-    "http://localhost:3000/api/store/filters/tags",
+    `${GATEWAY_URL}/store/filters/tags`,
     fetcher
   );
 
@@ -232,8 +232,6 @@ export function StorePage() {
                 className="px-3 py-1 border-2 border-muted rounded-none bg-background text-foreground text-sm font-medium hover:border-foreground transition-colors cursor-pointer focus:outline-none focus:border-foreground"
               >
                 <option value="title">Nom (A-Z)</option>
-                <option value="price_asc">Prix croissant</option>
-                <option value="price_desc">Prix décroissant</option>
                 <option value="rating">Meilleure note</option>
                 <option value="releaseDate">Plus récent</option>
                 <option value="popular">Popularité</option>

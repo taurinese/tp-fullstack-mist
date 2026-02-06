@@ -7,11 +7,14 @@ import {
   updateGameRating,
   updateGameNotes,
   toggleFavorite,
-  fetchSteamLibrary, // New import
-  importSteamGames, // New import
+  updatePurchaseDetails,
+  launchGame,
+  addManualGame,
+  fetchSteamLibrary,
+  importSteamGames,
   type Game,
   type Purchase,
-  type SteamGame // New import
+  type SteamGame
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +54,17 @@ export function LibraryPage() {
   const [selectedStatus, setSelectedStatus] = useState<Purchase['status'] | 'all'>('all');
   const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
   
+  // --- ADD MANUAL GAME STATE ---
+  const [showAddManual, setShowAddManual] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    title: '',
+    platform: '',
+    launchPath: '',
+    customImage: '',
+    status: 'to_play' as Purchase['status'],
+    notes: ''
+  });
+
   // --- STEAM IMPORT STATE ---
   const [showSteamImport, setShowSteamImport] = useState(false);
   const [steamId, setSteamId] = useState("");
@@ -156,6 +170,17 @@ export function LibraryPage() {
         await updateGameNotes(editingPurchase.id, editForm.notes);
       }
 
+      // Mettre à jour launchPath et platform
+      const detailsChanged =
+        editForm.launchPath !== (editingPurchase.launchPath || '') ||
+        editForm.platform !== (editingPurchase.platform || '');
+      if (detailsChanged) {
+        await updatePurchaseDetails(editingPurchase.id, {
+          launchPath: editForm.launchPath,
+          platform: editForm.platform,
+        });
+      }
+
       // Revalider les données
       mutate(`library-user-${user.id}`);
       handleCloseEdit();
@@ -163,6 +188,17 @@ export function LibraryPage() {
     } catch (error) {
       console.error('Failed to save changes:', error);
       toast.error('Failed to save changes');
+    }
+  };
+
+  // Handler pour lancer un jeu
+  const handleLaunchGame = async (purchaseId: number) => {
+    try {
+      const data = await launchGame(purchaseId);
+      window.open(data.launchUrl, '_self');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to launch game';
+      toast.error(message);
     }
   };
 
@@ -200,6 +236,30 @@ export function LibraryPage() {
       }
   };
 
+  // --- ADD MANUAL GAME HANDLER ---
+  const handleAddManualGame = async () => {
+    if (!user || !manualForm.title.trim()) {
+      toast.error('Game title is required');
+      return;
+    }
+    try {
+      await addManualGame(user.id, {
+        title: manualForm.title.trim(),
+        platform: manualForm.platform || undefined,
+        launchPath: manualForm.launchPath || undefined,
+        customImage: manualForm.customImage || undefined,
+        status: manualForm.status,
+        notes: manualForm.notes || undefined,
+      });
+      toast.success(`${manualForm.title} added to your library!`);
+      mutate(`library-user-${user.id}`);
+      setShowAddManual(false);
+      setManualForm({ title: '', platform: '', launchPath: '', customImage: '', status: 'to_play', notes: '' });
+    } catch {
+      toast.error('Failed to add game.');
+    }
+  };
+
   // Combiner purchases avec game details
   const enrichedPurchases = filteredPurchases.map(purchase => {
     const game = purchase.gameId ? allGames.find(g => g.id === purchase.gameId) : null;
@@ -221,9 +281,14 @@ export function LibraryPage() {
             {purchases.length} game{purchases.length !== 1 ? "s" : ""} in your collection
             </p>
         </div>
-        <Button onClick={() => setShowSteamImport(true)} variant="outline" className="rounded-none border-2">
-            Import from Steam
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowAddManual(true)} className="rounded-none">
+              Add Game
+          </Button>
+          <Button onClick={() => setShowSteamImport(true)} variant="outline" className="rounded-none border-2">
+              Import from Steam
+          </Button>
+        </div>
       </div>
 
       {/* Status Tabs */}
@@ -330,6 +395,16 @@ export function LibraryPage() {
                       </div>
                     )}
 
+                    {/* Bouton Launch */}
+                    {purchase.launchPath && (
+                      <button
+                        onClick={() => handleLaunchGame(purchase.id)}
+                        className="mt-3 w-full px-3 py-2 text-sm font-bold border-2 border-green-500 text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-white transition-all"
+                      >
+                        PLAY
+                      </button>
+                    )}
+
                     {/* Badge de statut cliquable */}
                     <button
                       onClick={() => handleOpenEdit(purchase)}
@@ -386,6 +461,88 @@ export function LibraryPage() {
           </div>
         )}
       </main>
+
+      {/* Modal Add Manual Game */}
+      <Dialog open={showAddManual} onOpenChange={setShowAddManual}>
+        <DialogContent className="sm:max-w-[500px] rounded-none">
+          <DialogHeader>
+            <DialogTitle>Add a Game Manually</DialogTitle>
+            <DialogDescription>
+              Add a game from any platform to your library.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            <div className="space-y-2">
+              <Label htmlFor="manual-title">Title *</Label>
+              <Input
+                id="manual-title"
+                value={manualForm.title}
+                onChange={(e) => setManualForm({ ...manualForm, title: e.target.value })}
+                placeholder="Game title"
+                className="rounded-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="manual-platform">Platform</Label>
+              <Input
+                id="manual-platform"
+                value={manualForm.platform}
+                onChange={(e) => setManualForm({ ...manualForm, platform: e.target.value })}
+                placeholder="e.g., Steam, Epic Games, GOG"
+                className="rounded-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="manual-launch">Launch Path / URL</Label>
+              <Input
+                id="manual-launch"
+                value={manualForm.launchPath}
+                onChange={(e) => setManualForm({ ...manualForm, launchPath: e.target.value })}
+                placeholder="e.g., steam://rungameid/730"
+                className="rounded-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="manual-image">Image URL</Label>
+              <Input
+                id="manual-image"
+                value={manualForm.customImage}
+                onChange={(e) => setManualForm({ ...manualForm, customImage: e.target.value })}
+                placeholder="https://..."
+                className="rounded-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setManualForm({ ...manualForm, status: value as Purchase['status'] })}
+                    className={`px-3 py-2 text-xs font-medium border-2 transition-all ${
+                      manualForm.status === value
+                        ? `${STATUS_COLORS[value as Purchase['status']]} border-current bg-current/10`
+                        : 'border-border text-muted-foreground hover:border-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button onClick={handleAddManualGame} className="w-full rounded-none">
+              Add to Library
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal Steam Import */}
       <Dialog open={showSteamImport} onOpenChange={setShowSteamImport}>
