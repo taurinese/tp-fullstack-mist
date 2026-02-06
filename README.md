@@ -23,8 +23,8 @@ Mist est une plateforme centralisée qui résout la fragmentation des lanceurs P
 - **✅ Authentification Sécurisée** : Inscription, connexion, déconnexion avec HttpOnly Cookies.
 - **✅ Catalogue de Jeux Dynamique** : Parcourez les jeux, utilisez les filtres, et comparez les prix en temps réel.
 - **✅ Gestion de Bibliothèque** : Suivez votre collection, classez vos jeux par statut (à jouer, terminé, etc.).
-- **🚧 Importation Steam** : Importer automatiquement vos jeux depuis votre compte Steam (en cours).
-- **🚧 Lancement Direct des Jeux** : Lancer vos jeux installés depuis l'interface web (à venir).
+- **✅ Importation Steam** : Importez automatiquement vos jeux depuis votre compte Steam.
+- **✅ Lancement Direct des Jeux** : Lancez vos jeux installés depuis l'interface web via deep links (steam://, etc.).
 
 ---
 
@@ -138,5 +138,27 @@ Une fois la stack lancée, vous pouvez tester les routes principales directement
 
 - **Frontend (Interface complète)** :
   [http://localhost:8080](http://localhost:8080)
+
+### 🧪 Lancer les tests
+
+Les tests sont executés automatiquement via le hook Husky pre-commit. Pour les lancer manuellement :
+
+```bash
+# Tests user-service (6 tests - validation auth)
+cd user-service && npm test
+
+# Tests library-service (28 tests - routes, auth, validation, launch)
+cd library-service && npm test
+```
+
+**Couverture des tests library-service :**
+- Middleware JWT (401/403)
+- GET /user/:id (library + controle d'acces)
+- POST /buy (ajout, doublon 409, champs requis)
+- POST /add-manual (ajout, titre requis)
+- POST /import (import, deduplication, validation)
+- PATCH /status (statut valide/invalide, dates auto)
+- PATCH /rating (0-5 entier, hors bornes)
+- GET /launch (URL, pas de path 400, acces 403)
 
 ---
