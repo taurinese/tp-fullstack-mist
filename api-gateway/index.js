@@ -6,8 +6,9 @@ const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 
+const FRONT_PORT = process.env.FRONT_PORT || 8080;
 app.use(cors({
-    origin: ['http://localhost:8080', 'http://localhost:5173'],
+    origin: [`http://localhost:${FRONT_PORT}`, 'http://localhost:5173'],
     credentials: true
 }));
 app.use(morgan('dev'));

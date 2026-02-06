@@ -15,9 +15,10 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 // Configuration CORS pour accepter les cookies du frontend
+const FRONT_PORT = process.env.FRONT_PORT || 8080;
 app.use(cors({
-    origin: ['http://localhost:8080', 'http://localhost:5173'], // Frontend URLs
-    credentials: true // Important pour les cookies
+    origin: [`http://localhost:${FRONT_PORT}`, 'http://localhost:5173'],
+    credentials: true
 }));
 
 app.use(morgan('dev'));
