@@ -378,6 +378,25 @@ const games = [
         reviewsCount: 3456789,
         platform: ["Windows"],
         isEarlyAccess: false
+    },
+    {
+        id: 121,
+        title: "Rocket League",
+        price: 0.00,
+        description: "Rocket League is a high-powered hybrid of arcade-style soccer and vehicular mayhem with easy-to-understand controls and fluid, physics-driven competition.",
+        image: "https://cdn.cloudflare.steamstatic.com/steam/apps/252950/header.jpg",
+        genre: ["Sports", "Racing", "Multiplayer"],
+        releaseDate: new Date("2015-07-07"),
+        rating: 4.6,
+        publisher: "Psyonix",
+        developer: "Psyonix",
+        tags: ["Sports", "Racing", "Multiplayer", "Competitive", "Esports", "Co-op"],
+        features: ["Online PvP", "Local Co-Op", "Cross-Platform Multiplayer", "Full Controller Support", "In-Game Purchases"],
+        languages: ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Japanese"],
+        discount: 0,
+        reviewsCount: 890000,
+        platform: ["Windows"],
+        isEarlyAccess: false
     }
 ];
 

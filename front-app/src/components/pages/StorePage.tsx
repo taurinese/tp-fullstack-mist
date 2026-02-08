@@ -3,11 +3,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useSWR from "swr";
-import { fetcher, GATEWAY_URL, type Game, buyGame, refreshGamePrices } from "@/lib/api";
+import { fetcher, GATEWAY_URL, type Game, type Purchase, buyGame, refreshGamePrices } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ExternalLink, Info } from "lucide-react";
+import { ExternalLink, Info, Plus, Check } from "lucide-react";
 import { toast } from "sonner"; // Import toast
 
 export function StorePage() {
@@ -24,6 +24,13 @@ export function StorePage() {
   const [sortBy, setSortBy] = useState("title");
 
   const { user } = useAuth();
+
+  // Récupérer la bibliothèque de l'utilisateur pour savoir quels jeux sont déjà ajoutés
+  const { data: library, mutate: mutateLibrary } = useSWR<Purchase[]>(
+    user ? `${GATEWAY_URL}/library/user/${user.id}` : null,
+    fetcher
+  );
+  const ownedGameIds = new Set(library?.map(p => p.gameId) ?? []);
 
   // Debounce pour éviter trop de requêtes
   useEffect(() => {
@@ -119,9 +126,9 @@ export function StorePage() {
     try {
       setProcessingId(game.id);
       // Ici, on ne "buy" plus au sens transactionnel, on l'ajoute à la bibliothèque personnelle
-      await buyGame(user.id, game.id); // buyGame est un peu mal nommé maintenant, c'est add to library
-      toast.success(`Successfully added ${game.title} to your library!`);
-      // Optional: Trigger a re-fetch of the library if we had a swr hook for it here
+      await buyGame(user.id, game.id);
+      toast.success(`${game.title} ajouté à la bibliothèque !`);
+      mutateLibrary();
     } catch (err) {
       toast.error("Failed to add game to library. It might already be there.");
       console.error(err);
@@ -319,10 +326,10 @@ export function StorePage() {
                                    <span className="line-through text-muted-foreground">${deal.retailPrice.toFixed(2)}</span>
                                 )}
                                 <span className="font-bold">${deal.price.toFixed(2)}</span>
-                                <a 
-                                  href={deal.dealLink} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
+                                <a
+                                  href={deal.dealLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
                                   className="text-primary hover:underline ml-1"
                                 >
                                   <ExternalLink className="h-3 w-3" />
@@ -335,13 +342,24 @@ export function StorePage() {
                     )}
 
                     <Button
-                      size="sm" 
-                      onClick={() => game.bestDeal && game.bestDeal.dealLink ? window.open(game.bestDeal.dealLink, '_blank') : handleAddToLibrary(game)}
-                      disabled={processingId === game.id}
-                      className="rounded-none bg-foreground text-background hover:bg-muted hover:text-foreground border border-foreground"
+                      size="icon"
+                      onClick={() => handleAddToLibrary(game)}
+                      disabled={processingId === game.id || ownedGameIds.has(game.id)}
+                      className={`h-8 w-8 rounded-none border ${ownedGameIds.has(game.id) ? "bg-green-600 text-white border-green-600 cursor-default" : "bg-foreground text-background hover:bg-muted hover:text-foreground border-foreground"}`}
+                      title={ownedGameIds.has(game.id) ? "Already in library" : "Add to library"}
                     >
-                      {processingId === game.id ? "..." : (game.bestDeal && game.bestDeal.dealLink ? "Voir l'offre" : "Ajouter à la bibliothèque")}
+                      {processingId === game.id ? "..." : ownedGameIds.has(game.id) ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     </Button>
+
+                    {game.bestDeal && game.bestDeal.dealLink && (
+                      <Button
+                        size="sm"
+                        onClick={() => window.open(game.bestDeal!.dealLink, '_blank')}
+                        className="rounded-none bg-foreground text-background hover:bg-muted hover:text-foreground border border-foreground"
+                      >
+                        Voir l'offre
+                      </Button>
+                    )}
                   </div>
                 </CardFooter>
               </Card>
